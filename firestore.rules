@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user owns the organization data
+    function isOwner(orgId) {
+      return isAuthenticated() && request.auth.uid == orgId;
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Allow access to subcollections inside users (like calculatorHistory)
+      match /{document=**} {
+        allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      }
+    }
+
+    // Organizations collection rules
+    match /organizations/{orgId} {
+      allow read, write: if isOwner(orgId);
+      
+      // Employee Master rules
+      match /employees/{employeeId} {
+        // Allow basic read/write to the main employee document for the owner
+        allow read, write: if isOwner(orgId);
+        
+        // Activity Log subcollection
+        match /activityLog/{logId} {
+          allow read, write: if isOwner(orgId);
+        }
+
+        // Sensitive Documents subcollection (strict read access)
+        match /sensitiveDocs/{docId} {
+          // In a real production scenario with granular roles, you would check a custom claim here
+          // e.g., request.auth.token.canViewSensitiveDocs == true
+          // For now, only the organization owner can access it
+          allow read, write: if isOwner(orgId);
+        }
+      }
+    }
+    
+  }
+}

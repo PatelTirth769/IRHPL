@@ -1,0 +1,28 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user owns the organization data
+    function isOwner(orgId) {
+      return isAuthenticated() && request.auth.uid == orgId;
+    }
+
+    // Storage rules for organizations
+    match /organizations/{orgId}/employees/{employeeId}/{fileName=**} {
+      // Allow read/write if the user is the owner of the organization
+      allow read, write: if isOwner(orgId);
+    }
+    
+    // Storage rules for passes
+    match /organizations/{orgId}/passes/{passId}/{documentType}/{fileName=**} {
+      // Allow read/write if the user is the owner of the organization
+      allow read, write: if isOwner(orgId);
+    }
+    
+  }
+}

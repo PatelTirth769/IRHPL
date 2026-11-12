@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-white text-gray-900 font-sans transition-colors duration-200;
+  }
+  
+  html.dark body {
+    @apply bg-brand-navy text-white;
+  }
+
+  input, textarea, select {
+    @apply text-gray-900;
+  }
+}
