@@ -36,7 +36,7 @@ const cancelPass = asyncHandler(async (req, res) => {
 });
 
 const deletePass = asyncHandler(async (req, res) => {
-  await passService.deletePass(req.params.id);
+  await passService.deletePass(req.params.id, req.user?.uid);
   res.status(200).send({ status: 'success', message: 'Pass application deleted successfully' });
 });
 

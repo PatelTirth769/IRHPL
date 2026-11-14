@@ -23,6 +23,8 @@ export const navLinks = [
     dropdown: [
       { label: 'Guides', href: '/resources/guides' },
       { label: 'Templates', href: '/resources/templates' },
+      { label: 'Court Judgements', href: '/court-judgements' },
+      { label: 'Blog', href: '/blog' },
     ]
   },
   {
@@ -32,12 +34,4 @@ export const navLinks = [
       { label: 'Database', href: '/penalties/db' },
     ]
   },
-  {
-    label: 'Judgements',
-    dropdown: [
-      { label: 'Recent', href: '/judgements/recent' },
-      { label: 'Landmark', href: '/judgements/landmark' },
-    ]
-  },
-  { label: 'Blog', href: '/blog' },
 ];

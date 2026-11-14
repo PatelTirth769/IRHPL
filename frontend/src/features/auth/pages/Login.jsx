@@ -3,17 +3,16 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useGoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import Input from '@/components/ui/Input';
 import PasswordInput from '@/components/ui/PasswordInput';
 import Button from '@/components/ui/Button';
-import Divider from '@/components/ui/Divider';
 import OtpInput from '@/components/ui/OtpInput';
 import api from '@/services/api';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/config/firebase';
 import { useAuthStore } from '@/store/authStore';
+import { Mail, Lock, ShieldCheck, ArrowRight, KeyRound } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -31,7 +30,6 @@ const Login = () => {
   const [countdown, setCountdown] = useState(0);
   
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(loginSchema)
@@ -52,7 +50,6 @@ const Login = () => {
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
       toast.success('Logged in successfully');
-      // PublicRoute will auto-redirect when auth state updates
     } catch (error) {
       console.error(error);
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
@@ -90,7 +87,6 @@ const Login = () => {
       await api.post('/auth/otp/verify', { email: otpEmail, otp: code });
       await checkAuth();
       toast.success('Logged in successfully');
-      // PublicRoute will auto-redirect when auth state updates
     } catch (error) {
       toast.error(error.response?.data?.message || 'Invalid or expired code');
     } finally {
@@ -98,70 +94,58 @@ const Login = () => {
     }
   };
 
-  const googleLogin = async () => {
-    setIsGoogleLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      toast.success('Logged in successfully!');
-      // PublicRoute will auto-redirect
-    } catch (error) {
-      console.error(error);
-      toast.error('Google login failed');
-    } finally {
-      setIsGoogleLoading(false);
-    }
-  };
-
-
   return (
     <div className="flex flex-col">
-      <div className="text-center mb-8">
-        <h1 className="text-[28px] font-bold text-gray-900 mb-2">Welcome Back</h1>
-        <p className="text-gray-500 text-[15px]">Log in to access your compliance dashboard</p>
+      {/* Top Header */}
+      <div className="text-center mb-5">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-xs font-semibold mb-2">
+          <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+          <span>Compliance & Operations Portal</span>
+        </div>
+        <h1 className="text-2xl sm:text-[26px] font-bold text-slate-900 tracking-tight">
+          Welcome Back
+        </h1>
+        <p className="text-slate-500 text-xs sm:text-sm mt-1">
+          Sign in to access your organization workspace
+        </p>
       </div>
 
-      <Button 
-        variant="secondary" 
-        className="w-full h-12 flex items-center justify-center gap-3 !font-medium"
-        onClick={() => googleLogin()}
-        isLoading={isGoogleLoading}
-      >
-        <svg className="w-5 h-5" viewBox="0 0 24 24">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-        </svg>
-        Continue with Google
-      </Button>
-
-      <Divider />
-
-      {/* Tabs */}
-      <div className="flex p-1 bg-white border border-slate-200 rounded-xl mb-6 relative z-0">
-        <div className={`absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-blue-600 rounded-lg transition-transform duration-300 ease-in-out -z-10 ${tab === 'otp' ? 'translate-x-full' : 'translate-x-0'}`} />
-        
+      {/* Modern Segmented Tab Switcher */}
+      <div className="flex p-1 bg-slate-100/90 border border-slate-200/70 rounded-xl mb-4">
         <button 
-          className={`flex-1 py-2 text-sm font-semibold transition-colors ${tab === 'password' ? 'text-white' : 'text-gray-600 hover:text-gray-900'}`}
+          type="button"
+          className={`flex-1 py-1.5 text-xs sm:text-sm font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 ${
+            tab === 'password' 
+              ? 'bg-blue-600 text-white shadow-sm' 
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+          }`}
           onClick={() => { setTab('password'); setOtpStep(1); }}
         >
-          Password
+          <KeyRound className="w-3.5 h-3.5" />
+          <span>Password</span>
         </button>
         <button 
-          className={`flex-1 py-2 text-sm font-semibold transition-colors ${tab === 'otp' ? 'text-white' : 'text-gray-600 hover:text-gray-900'}`}
+          type="button"
+          className={`flex-1 py-1.5 text-xs sm:text-sm font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 ${
+            tab === 'otp' 
+              ? 'bg-blue-600 text-white shadow-sm' 
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+          }`}
           onClick={() => setTab('otp')}
         >
-          Email one-time code
+          <Mail className="w-3.5 h-3.5" />
+          <span>Email One-Time Code</span>
         </button>
       </div>
 
+      {/* Password Tab Form */}
       {tab === 'password' && (
-        <form onSubmit={handleSubmit(onPasswordSubmit)} className="space-y-5 animate-fade-in">
+        <form onSubmit={handleSubmit(onPasswordSubmit)} className="space-y-3.5">
           <Input 
-            label="Email" 
+            label="Email Address" 
             type="email"
             placeholder="you@company.com" 
+            icon={Mail}
             {...register('email')} 
             error={errors.email} 
           />
@@ -169,63 +153,96 @@ const Login = () => {
           <PasswordInput 
             label="Password" 
             placeholder="Enter your password" 
+            icon={Lock}
             {...register('password')} 
             error={errors.password} 
-            rightElement={<Link to="/forgot-password" className="text-sm text-blue-600 hover:underline font-medium">Forgot password?</Link>}
+            rightElement={
+              <Link 
+                to="/forgot-password" 
+                className="text-xs text-blue-600 hover:text-blue-800 font-semibold transition-colors"
+              >
+                Forgot password?
+              </Link>
+            }
           />
 
-          <Button type="submit" className="w-full h-12 text-base mt-2" isLoading={isLoading}>
-            Log In
+          <Button 
+            type="submit" 
+            className="w-full h-11 text-sm font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow transition-all mt-2" 
+            isLoading={isLoading}
+          >
+            <span>Log In</span>
+            <ArrowRight className="w-4 h-4 ml-1.5" />
           </Button>
         </form>
       )}
 
+      {/* Email OTP Tab - Step 1: Request Code */}
       {tab === 'otp' && otpStep === 1 && (
-        <form onSubmit={handleSendOtp} className="space-y-5 animate-fade-in">
+        <form onSubmit={handleSendOtp} className="space-y-4">
           <Input 
-            label="Email" 
+            label="Email Address" 
             type="email"
             placeholder="you@company.com" 
+            icon={Mail}
             value={otpEmail}
             onChange={(e) => setOtpEmail(e.target.value)}
           />
-          <Button type="submit" className="w-full h-12 text-base mt-2" isLoading={isLoading}>
-            Send Code
+          <Button 
+            type="submit" 
+            className="w-full h-11 text-sm font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow transition-all mt-2" 
+            isLoading={isLoading}
+          >
+            <span>Send One-Time Code</span>
+            <ArrowRight className="w-4 h-4 ml-1.5" />
           </Button>
         </form>
       )}
 
+      {/* Email OTP Tab - Step 2: Verify Code */}
       {tab === 'otp' && otpStep === 2 && (
-        <div className="space-y-6 animate-fade-in">
-          <div className="text-center">
-            <p className="text-sm text-gray-600 mb-1">Enter the 6-digit code sent to</p>
-            <p className="font-semibold text-gray-900">{otpEmail}</p>
+        <div className="space-y-5">
+          <div className="text-center p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+            <p className="text-xs text-slate-500 mb-0.5">Enter the 6-digit code sent to</p>
+            <p className="font-semibold text-slate-800 text-sm">{otpEmail}</p>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center py-1">
             <OtpInput length={6} onComplete={handleVerifyOtp} />
           </div>
 
-          {isLoading && <p className="text-center text-sm text-blue-600">Verifying...</p>}
+          {isLoading && <p className="text-center text-xs font-medium text-blue-600">Verifying code...</p>}
 
-          <div className="flex flex-col items-center gap-3 pt-2">
+          <div className="flex flex-col items-center gap-2 pt-1 text-xs">
             {countdown > 0 ? (
-              <p className="text-sm text-gray-500">Resend code in {countdown}s</p>
+              <p className="text-slate-400">Resend code in <strong className="text-slate-700">{countdown}s</strong></p>
             ) : (
-              <button onClick={handleSendOtp} className="text-sm text-blue-600 font-medium hover:underline">
+              <button 
+                type="button"
+                onClick={handleSendOtp} 
+                className="text-blue-600 font-semibold hover:underline"
+              >
                 Resend code
               </button>
             )}
             
-            <button onClick={() => setOtpStep(1)} className="text-sm text-gray-500 hover:text-gray-900">
-              Change email
+            <button 
+              type="button"
+              onClick={() => setOtpStep(1)} 
+              className="text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              ← Use a different email
             </button>
           </div>
         </div>
       )}
 
-      <div className="mt-8 text-center text-[15px] text-gray-600">
-        Don't have an account? <Link to="/register" className="text-blue-600 font-semibold hover:underline">Sign up free</Link>
+      {/* Footer Navigation */}
+      <div className="mt-5 pt-3.5 border-t border-slate-100 text-center text-xs sm:text-sm text-slate-600">
+        Don't have an account?{' '}
+        <Link to="/register" className="text-blue-600 font-semibold hover:underline transition-colors">
+          Sign up free
+        </Link>
       </div>
     </div>
   );

@@ -29,32 +29,32 @@ const Dashboard = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-8">
-        <StatCard 
-          title="Employee Master" 
-          value={employeeCount} 
-          type="calculator" 
-          isLoading={loading} 
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 mb-8">
+        <StatCard
+          title="Employee Master"
+          value={employeeCount}
+          type="calculator"
+          isLoading={loading}
           onClick={() => navigate('/dashboard/employee-master')}
         />
-        <StatCard 
-          title="Pass Management" 
-          value={passCount} 
-          type="pin" 
-          isLoading={loading} 
+        <StatCard
+          title="Pass Management"
+          value={passCount}
+          type="pin"
+          isLoading={loading}
           onClick={() => navigate('/dashboard/pass-management')}
         />
-        <StatCard 
-          title="Plan" 
-          value={(stats?.plan || 'Free').charAt(0).toUpperCase() + (stats?.plan || 'free').slice(1)} 
-          type="crown" 
-          isLoading={loading} 
+        <StatCard
+          title="Plan"
+          value={(stats?.plan || 'Free').charAt(0).toUpperCase() + (stats?.plan || 'free').slice(1)}
+          type="crown"
+          isLoading={loading}
         />
-        <StatCard 
-          title="Expiring in 10 days" 
-          value={expiringCount} 
-          type="clock" 
-          isLoading={loading} 
+        <StatCard
+          title="Expiring in 10 days"
+          value={expiringCount}
+          type="clock"
+          isLoading={loading}
           onClick={() => navigate('/expiry-reminders')}
         />
       </div>

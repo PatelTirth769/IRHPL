@@ -151,16 +151,12 @@ const OrgChainDetail = () => {
                     </button>
                   </div>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                     <div>
                       <span className="text-slate-500 block text-[10px] uppercase tracking-wider mb-0.5">Status</span>
                       <span className="text-slate-900 font-medium text-sm">
                         <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-bold">{license.status}</span>
                       </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block text-[10px] uppercase tracking-wider mb-0.5">Phase</span>
-                      <span className="text-slate-900 font-medium text-sm">{license.phase}</span>
                     </div>
                     <div>
                       <span className="text-slate-500 block text-[10px] uppercase tracking-wider mb-0.5">Validity Start</span>

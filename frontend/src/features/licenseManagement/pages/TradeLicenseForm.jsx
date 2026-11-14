@@ -11,7 +11,6 @@ const TradeLicenseForm = () => {
   const [formData, setFormData] = useState({
     targetStore: '',
     type: 'Trade license',
-    phase: 'Phase 1',
     validityStart: '',
     validityEnd: '',
     renewalExpiry: '',
@@ -34,7 +33,6 @@ const TradeLicenseForm = () => {
         linkedStore: formData.targetStore,
         govBody: formData.governmentBody,
         status: 'Draft',
-        phase: formData.phase,
         validityStartDate: formData.validityStart,
         validityEndDate: formData.validityEnd,
         renewalDueDate: formData.renewalExpiry,
@@ -112,20 +110,6 @@ const TradeLicenseForm = () => {
                 <option value="S&E">S&E</option>
                 <option value="Contract labour">Contract labour</option>
                 <option value="Trade license">Trade license</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phase</label>
-              <select 
-                name="phase" 
-                value={formData.phase} 
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                <option value="Phase 1">Phase 1</option>
-                <option value="Phase 2">Phase 2</option>
-                <option value="Phase 3">Phase 3</option>
               </select>
             </div>
 

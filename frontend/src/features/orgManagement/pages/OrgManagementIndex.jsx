@@ -4,6 +4,23 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { orgService } from '../services/org.service';
 
+const getOrgTimestamp = (chain) => {
+  if (!chain) return 0;
+  const raw = chain.createdAt || chain.store?.createdAt || chain.company?.createdAt || chain.location?.createdAt || chain.zone?.createdAt;
+  if (!raw) return 0;
+  if (typeof raw.toDate === 'function') {
+    return raw.toDate().getTime();
+  }
+  if (raw._seconds) {
+    return raw._seconds * 1000;
+  }
+  if (raw.seconds) {
+    return raw.seconds * 1000;
+  }
+  const parsed = new Date(raw).getTime();
+  return isNaN(parsed) ? 0 : parsed;
+};
+
 const OrgManagementIndex = () => {
   const [chains, setChains] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -13,7 +30,10 @@ const OrgManagementIndex = () => {
     setIsLoading(true);
     try {
       const res = await orgService.getOrgChains();
-      setChains(res.data || []);
+      const rawChains = res.data || [];
+      // Sort descending by creation date so newly created org chains appear on top
+      const sortedChains = [...rawChains].sort((a, b) => getOrgTimestamp(b) - getOrgTimestamp(a));
+      setChains(sortedChains);
     } catch (e) {
       toast.error('Failed to fetch org chains');
     } finally {

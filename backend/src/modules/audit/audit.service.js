@@ -30,13 +30,46 @@ const getLogs = async (filters = {}) => {
   let logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
   if (filters.action) {
-    logs = logs.filter(log => log.action === filters.action);
+    const actUpper = String(filters.action).toUpperCase();
+    if (actUpper === 'CREATION') {
+      logs = logs.filter(log => {
+        const a = String(log.action || '').toUpperCase();
+        return a.includes('CREATE') || a.includes('SUBMIT');
+      });
+    } else if (actUpper === 'UPDATION' || actUpper === 'UPDATE') {
+      logs = logs.filter(log => {
+        const a = String(log.action || '').toUpperCase();
+        return a.includes('UPDATE') || a.includes('RENEW') || a.includes('EDIT');
+      });
+    } else if (actUpper === 'DELETION' || actUpper === 'DELETE') {
+      logs = logs.filter(log => {
+        const a = String(log.action || '').toUpperCase();
+        return a.includes('DELETE') || a.includes('CANCEL');
+      });
+    } else {
+      logs = logs.filter(log => log.action === filters.action);
+    }
+  }
+  if (filters.targetType) {
+    logs = logs.filter(log => log.targetType === filters.targetType);
   }
   if (filters.targetId) {
-    logs = logs.filter(log => log.targetId === filters.targetId);
+    const tid = String(filters.targetId).toLowerCase().trim();
+    logs = logs.filter(log => log.targetId && String(log.targetId).toLowerCase().includes(tid));
   }
   if (filters.actorId) {
-    logs = logs.filter(log => log.actorId === filters.actorId);
+    const aid = String(filters.actorId).toLowerCase().trim();
+    logs = logs.filter(log => log.actorId && String(log.actorId).toLowerCase().includes(aid));
+  }
+  if (filters.search) {
+    const q = String(filters.search).toLowerCase().trim();
+    logs = logs.filter(log =>
+      (log.targetId && String(log.targetId).toLowerCase().includes(q)) ||
+      (log.description && String(log.description).toLowerCase().includes(q)) ||
+      (log.action && String(log.action).toLowerCase().includes(q)) ||
+      (log.actorId && String(log.actorId).toLowerCase().includes(q)) ||
+      (log.targetType && String(log.targetType).toLowerCase().includes(q))
+    );
   }
 
   // Sorting descending by timestamp

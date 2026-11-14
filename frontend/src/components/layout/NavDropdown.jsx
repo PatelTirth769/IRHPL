@@ -22,7 +22,7 @@ const NavDropdown = ({ item }) => {
         setIsOpen(false);
       }
     };
-    
+
     const handleEscape = (e) => {
       if (e.key === 'Escape') setIsOpen(false);
     };
@@ -36,14 +36,14 @@ const NavDropdown = ({ item }) => {
   }, []);
 
   return (
-    <div 
-      className="relative group" 
+    <div
+      className="relative group"
       ref={dropdownRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <button 
-        className="flex items-center text-brand-textLight hover:text-white font-medium text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded px-2 py-1"
+      <button
+        className="flex items-center text-brand-textLight hover:text-white font-medium text-[13px] xl:text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded px-1 lg:px-1.5 xl:px-2 py-1"
         aria-expanded={isOpen}
         aria-haspopup="true"
         onClick={() => setIsOpen(!isOpen)}

@@ -64,7 +64,6 @@ const createOrgChain = async (payload, userId) => {
       linkedStore: storeId,
       govBody: payload.govBody || '',
       status: 'Issued/Active',
-      phase: 'Phase 1', // Default
       validityStartDate: payload.validityStartDate || null,
       validityEndDate: payload.validityEndDate || null,
       renewalDueDate: payload.renewalDueDate || null,
@@ -93,6 +92,23 @@ const createOrgChain = async (payload, userId) => {
   });
 
   return { companyId, locationId, zoneId, storeId };
+};
+
+const getOrgTimestamp = (chain) => {
+  if (!chain) return 0;
+  const raw = chain.createdAt || chain.store?.createdAt || chain.company?.createdAt || chain.location?.createdAt || chain.zone?.createdAt;
+  if (!raw) return 0;
+  if (typeof raw.toDate === 'function') {
+    return raw.toDate().getTime();
+  }
+  if (raw._seconds) {
+    return raw._seconds * 1000;
+  }
+  if (raw.seconds) {
+    return raw.seconds * 1000;
+  }
+  const parsed = new Date(raw).getTime();
+  return isNaN(parsed) ? 0 : parsed;
 };
 
 const getOrgChains = async () => {
@@ -129,12 +145,15 @@ const getOrgChains = async () => {
         company: comp,
         location: loc,
         zone: zone || null,
-        store: store
+        store: store,
+        createdAt: store.createdAt || comp.createdAt || loc.createdAt || null
       });
     }
   });
 
-  // Also push companies/locations that have no stores yet, but the requirement is full chain, so focusing on chains for now.
+  // Sort chains so the newest created org chain always appears on top
+  chains.sort((a, b) => getOrgTimestamp(b) - getOrgTimestamp(a));
+
   return chains;
 };
 

@@ -29,6 +29,21 @@ export const addEmployee = async (orgId, employeeData) => {
     action: 'CREATED',
     timestamp: serverTimestamp()
   });
+
+  // Global audit log entry
+  try {
+    await addDoc(collection(db, 'audit_logs'), {
+      action: 'EMPLOYEE_CREATED',
+      actorId: orgId || 'system',
+      targetId: docRef.id,
+      targetType: 'EMPLOYEE',
+      description: `Employee created: ${employeeData.fullName || employeeData.name || employeeData.employeeId || docRef.id}`,
+      metadata: { employeeId: employeeData.employeeId || null, designation: employeeData.designation || null },
+      timestamp: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error('Failed to write employee audit log:', e);
+  }
   
   return docRef.id;
 };
@@ -44,11 +59,41 @@ export const updateEmployee = async (orgId, employeeId, employeeData) => {
     action: 'UPDATED',
     timestamp: serverTimestamp()
   });
+
+  // Global audit log entry
+  try {
+    await addDoc(collection(db, 'audit_logs'), {
+      action: 'EMPLOYEE_UPDATED',
+      actorId: orgId || 'system',
+      targetId: employeeId,
+      targetType: 'EMPLOYEE',
+      description: `Employee updated: ${employeeData.fullName || employeeData.name || employeeId}`,
+      metadata: { employeeId },
+      timestamp: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error('Failed to write employee audit log:', e);
+  }
 };
 
 export const deleteEmployee = async (orgId, employeeId) => {
   const docRef = doc(db, 'organizations', orgId, 'employees', employeeId);
   await deleteDoc(docRef);
+
+  // Global audit log entry
+  try {
+    await addDoc(collection(db, 'audit_logs'), {
+      action: 'EMPLOYEE_DELETED',
+      actorId: orgId || 'system',
+      targetId: employeeId,
+      targetType: 'EMPLOYEE',
+      description: `Employee deleted: ${employeeId}`,
+      metadata: { employeeId },
+      timestamp: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error('Failed to write employee audit log:', e);
+  }
 };
 
 // Masking utility

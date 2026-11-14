@@ -146,6 +146,26 @@ const createPass = async (passData, userId) => {
 };
 
 /**
+ * Helper to get timestamp from pass object
+ */
+const getPassTimestamp = (pass) => {
+  if (!pass) return 0;
+  const raw = pass.createdAt || pass.appliedDate || pass.updatedAt;
+  if (!raw) return 0;
+  if (typeof raw.toDate === 'function') {
+    return raw.toDate().getTime();
+  }
+  if (raw._seconds) {
+    return raw._seconds * 1000;
+  }
+  if (raw.seconds) {
+    return raw.seconds * 1000;
+  }
+  const parsed = new Date(raw).getTime();
+  return isNaN(parsed) ? 0 : parsed;
+};
+
+/**
  * Get all passes
  */
 const getPasses = async (filters = {}) => {
@@ -160,7 +180,12 @@ const getPasses = async (filters = {}) => {
   }
 
   const snapshot = await query.get();
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const passes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  // Sort passes so that the newest created pass always appears on top
+  passes.sort((a, b) => getPassTimestamp(b) - getPassTimestamp(a));
+
+  return passes;
 };
 
 /**
@@ -306,7 +331,7 @@ const cancelPass = async (id, reason, date, userId) => {
   return { ...pass, ...updates };
 };
 
-const deletePass = async (id) => {
+const deletePass = async (id, userId) => {
   const docRef = db().collection(PASS_COLLECTION).doc(id);
   const doc = await docRef.get();
   
@@ -314,7 +339,26 @@ const deletePass = async (id) => {
     throw new ApiError(404, 'Pass application not found');
   }
 
-  await docRef.delete();
+  const passData = doc.data();
+
+  // 1. Delete associated procedural checklists
+  const checklistSnap = await db().collection('checklists').where('passId', '==', id).get();
+  const batch = db().batch();
+  checklistSnap.forEach(cDoc => {
+    batch.delete(cDoc.ref);
+  });
+  batch.delete(docRef);
+  await batch.commit();
+
+  // 2. Audit log event
+  await auditService.logEvent({
+    action: 'PASS_DELETED',
+    actorId: userId || 'system',
+    targetId: id,
+    targetType: 'pass_application',
+    description: `Pass application deleted for ${passData.applicantName || 'Applicant'}`
+  });
+
   return { id };
 };
 

@@ -67,7 +67,37 @@ const getChecklists = async (orgId) => {
     query = query.where('orgId', '==', orgId);
   }
   const snapshot = await query.get();
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const allChecklists = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  // Check each checklist's pass existence to filter and self-heal orphaned records
+  const checks = await Promise.all(
+    allChecklists.map(async (item) => {
+      if (!item.passId) return { item, exists: false };
+      const passDoc = await db().collection('passes').doc(item.passId).get();
+      return { item, exists: passDoc.exists };
+    })
+  );
+
+  const validChecklists = [];
+  for (const { item, exists } of checks) {
+    if (exists) {
+      validChecklists.push(item);
+    } else {
+      // Self-heal: automatically delete orphaned checklist whose pass no longer exists
+      db().collection(CHECKLIST_COLLECTION).doc(item.id).delete().catch(err => {
+        console.error(`Failed to delete orphaned checklist ${item.id}:`, err);
+      });
+    }
+  }
+
+  // Sort descending by creation date so newly generated checklists appear at the top
+  validChecklists.sort((a, b) => {
+    const timeA = new Date(a.createdAt || a.updatedAt || 0).getTime();
+    const timeB = new Date(b.createdAt || b.updatedAt || 0).getTime();
+    return timeB - timeA;
+  });
+
+  return validChecklists;
 };
 
 const getChecklistByPassId = async (passId) => {
